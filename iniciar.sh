@@ -2,7 +2,7 @@
 echo -e "${AMARELO}Sincronizando com GitHub...${SEM_COR}"
 
 # Verifica se o remote está certo
-git remote set-url origin https://github.com/SEU_USUARIO/bombinhaOS-PRO.git
+git remote set-url origin https://github.com/lucas3012/bombinhaOS-PRO.git
 
 if [[ -n $(git status -s) ]]; then
     git add .
