@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | OS Manager Pro</title>
+    
+    <!-- CSS Externo -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Font Awesome (Ícones) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- SweetAlert2 (Pop-ups modernos) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="dash-page">
+
+    <!-- BOTÃO MENU HAMBÚRGUER (Visível apenas no Mobile) -->
+    <div class="menu-mobile" onclick="toggleMenu()">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <div class="container">
+        <!-- BARRA LATERAL (SIDEBAR) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <h2><i class="fas fa-tools"></i> OS Manager</h2>
+            </div>
+            <nav>
+                <a href="javascript:void(0)" id="link-home" class="nav-link active" onclick="showSection('home')">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="javascript:void(0)" id="link-os" class="nav-link" onclick="showSection('os')">
+                    <i class="fas fa-plus-circle"></i> Nova OS
+                </a>
+                <a href="javascript:void(0)" id="link-history" class="nav-link" onclick="showSection('history')">
+                    <i class="fas fa-history"></i> Histórico
+                </a>
+                <a href="javascript:void(0)" id="link-admin" class="nav-link" onclick="showSection('admin')">
+                    <i class="fas fa-user-shield"></i> Painel ADM
+                </a>
+                
+                <div class="sidebar-footer" style="margin-top: auto;">
+                    <a href="/" class="nav-link logout">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main class="content">
+            
+            <!-- SEÇÃO 1: DASHBOARD (HOME) -->
+            <section id="home" class="tab-content active">
+                <header>
+                    <h1>Dashboard</h1>
+                    <p>Resumo geral das atividades</p>
+                </header>
+                
+                <div class="cards-grid">
+                    <div class="card blue">
+                        <i class="fas fa-list-ul"></i>
+                        <div class="card-info">
+                            <h3 id="stat-total">0</h3>
+                            <p>Total de OS</p>
+                        </div>
+                    </div>
+                    <div class="card yellow">
+                        <i class="fas fa-hourglass-half"></i>
+                        <div class="card-info">
+                            <h3 id="stat-abertas">0</h3>
+                            <p>OS Abertas</p>
+                        </div>
+                    </div>
+                    <div class="card green">
+                        <i class="fas fa-check-circle"></i>
+                        <div class="card-info">
+                            <h3 id="stat-concluidas">0</h3>
+                            <p>Concluídas</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 2: NOVA ORDEM DE SERVIÇO -->
+            <section id="os" class="tab-content">
+                <header>
+                    <h1>Nova Ordem de Serviço</h1>
+                    <p>Cadastre um novo serviço para um cliente</p>
+                </header>
+
+                <form id="formOS" class="os-form">
+                    <div class="input-group">
+                        <label>Nome do Cliente</label>
+                        <input type="text" id="cliente" placeholder="Ex: Maria Oliveira" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Equipamento / Aparelho</label>
+                        <input type="text" id="aparelho" placeholder="Ex: Notebook HP G4" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="input-group">
+                            <label>Status Inicial</label>
+                            <select id="status">
+                                <option value="Aberto">Aberto</option>
+                                <option value="Em Análise">Em Análise</option>
+                                <option value="Aguardando Peça">Aguardando Peça</option>
+                                <option value="Concluído">Concluído</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Valor Estimado (R$)</label>
+                            <input type="number" id="valor" step="0.01" placeholder="0,00">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Descrição do Problema</label>
+                        <textarea id="descricao" rows="4" placeholder="Relato do defeito..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> Registrar OS
+                    </button>
+                </form>
+            </section>
+
+            <!-- SEÇÃO 3: HISTÓRICO -->
+            <section id="history" class="tab-content">
+                <div class="header-section" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
+                    <div>
+                        <h1>Histórico</h1>
+                        <p>Gerenciamento de ordens registradas</p>
+                    </div>
+                    <input type="text" id="searchOS" placeholder="Filtrar por nome ou aparelho..." onkeyup="filterOS()" style="max-width: 300px;">
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Cliente</th>
+                                <th>Aparelho</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaOS">
+                            <!-- Preenchido via main.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 4: PAINEL ADM -->
+            <section id="admin" class="tab-content">
+                <header>
+                    <h1>Painel Administrativo</h1>
+                    <p>Gerencie sua equipe técnica</p>
+                </header>
+
+                <div class="admin-grid">
+                    <!-- Cadastro de Usuário -->
+                    <div class="admin-box">
+                        <h3><i class="fas fa-user-plus"></i> Novo Técnico</h3>
+                        <form id="formUser" class="small-form">
+                            <div class="input-group">
+                                <input type="text" id="userName" placeholder="Nome Completo" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="email" id="userEmail" placeholder="E-mail" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="userPass" placeholder="Senha" required>
+                            </div>
+                            <button type="submit" class="btn-save">Cadastrar Técnico</button>
+                        </form>
+                    </div>
+
+                    <!-- Listagem de Usuários -->
+                    <div class="admin-box">
+                        <h3><i class="fas fa-users"></i> Equipe</h3>
+                        <ul id="listaUsuarios" class="user-list">
+                            <!-- Preenchido via main.js -->
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Script Principal -->
+    <script src="js/main.js"></script>
+</body>
+</html>
