@@ -2,85 +2,147 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Bombinha OS-PRO</title>
+    <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- SweetAlert2 para alertas bonitos -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
-        :root { --primary: #007bff; --dark: #0a0a0a; --card: #1a1a1a; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        
-        body { 
-            background: var(--dark); 
-            height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
-            background: radial-gradient(circle at top right, #1e3a5f, #0a0a0a);
+        :root {
+            --primary: #00d2ff;
+            --neon-blue: #00f2ff;
+            --bg-dark: #0f0f0f;
+            --card-bg: #1a1a1a;
         }
 
-        .login-card {
-            background: rgba(26, 26, 26, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 100%; max-width: 380px;
-            padding: 40px 30px; border-radius: 25px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .login-container {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             text-align: center;
         }
 
-        .logo-area i {
-            font-size: 3rem; color: var(--primary); margin-bottom: 15px;
-            filter: drop-shadow(0 0 10px rgba(0, 123, 255, 0.5));
+        .login-container i.main-icon {
+            font-size: 3rem;
+            color: var(--neon-blue);
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.5));
         }
 
-        h1 { color: #fff; font-size: 1.8rem; margin-bottom: 10px; letter-spacing: 2px; }
-        p { color: #888; font-size: 0.9rem; margin-bottom: 30px; }
+        h2 {
+            margin-bottom: 30px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
 
-        .input-group { position: relative; margin-bottom: 20px; }
-        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--primary); }
-        
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #555;
+        }
+
         input {
-            width: 100%; padding: 15px 15px 15px 45px;
-            background: #252525; border: 1px solid #333; border-radius: 12px;
-            color: #fff; font-size: 1rem; outline: none; transition: 0.3s;
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            background: #252525;
+            border: 2px solid transparent;
+            border-radius: 50px; /* Bordas arredondadas */
+            color: white;
+            outline: none;
+            transition: 0.3s;
         }
 
-        input:focus { border-color: var(--primary); background: #2a2a2a; box-shadow: 0 0 10px rgba(0,123,255,0.2); }
-
-        button {
-            width: 100%; padding: 15px; background: var(--primary); border: none;
-            border-radius: 12px; color: #fff; font-size: 1.1rem; font-weight: bold;
-            cursor: pointer; transition: 0.3s; margin-top: 10px;
+        input:focus {
+            border-color: var(--primary);
+            background: #2a2a2a;
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
         }
 
-        button:hover { transform: translateY(-3px); filter: brightness(1.2); }
+        .btn-neon {
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 50px; /* Botão arredondado */
+            background: transparent;
+            color: var(--neon-blue);
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: 2px solid var(--neon-blue);
+            transition: 0.4s;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.2), inset 0 0 10px rgba(0, 242, 255, 0.2);
+        }
 
-        /* Mobile Fix */
-        @media (max-width: 480px) {
-            .login-card { padding: 30px 20px; }
+        .btn-neon:hover {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 30px var(--neon-blue);
+        }
+
+        .footer-text {
+            margin-top: 25px;
+            font-size: 0.8rem;
+            color: #555;
         }
     </style>
 </head>
 <body>
 
-    <div class="login-card">
-        <div class="logo-area">
-            <i class="fas fa-bomb"></i>
-            <h1>OS-PRO</h1>
-            <p>Bombinha Service Manager</p>
-        </div>
-
+    <div class="login-container">
+        <i class="fas fa-microchip main-icon"></i>
+        <h2>Acesso ao Sistema</h2>
+        
         <form id="loginForm">
             <div class="input-group">
                 <i class="fas fa-envelope"></i>
                 <input type="email" id="email" placeholder="E-mail" required>
             </div>
+            
             <div class="input-group">
                 <i class="fas fa-lock"></i>
                 <input type="password" id="password" placeholder="Senha" required>
             </div>
-            <button type="submit">ENTRAR</button>
+            
+            <button type="submit" class="btn-neon">Entrar</button>
         </form>
+
+        <p class="footer-text">Bombinha OS-PRO &copy; 2026</p>
     </div>
 
+    <!-- O caminho deve ser relativo para funcionar no GitHub Pages -->
     <script src="js/login.js"></script>
 </body>
 </html>
