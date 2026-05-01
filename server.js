@@ -1,137 +1,73 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
-const app = express();
-const PORT = 3000;
+const sqlite3 = require('sqlite3');
+const { open } = require('sqlite');
 
-// Middleware para entender JSON e servir arquivos estáticos
+const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
-const DATA_PATH = path.join(__dirname, 'data', 'db.json');
+let db;
 
-// --- FUNÇÕES AUXILIARES DE BANCO DE DATA ---
+// Conectar ao Banco de Dados SQLite
+(async () => {
+    db = await open({
+        filename: path.join(__dirname, 'data', 'dados.db'),
+        driver: sqlite3.Database
+    });
 
-// Garante que o arquivo e a pasta existam
-function initDB() {
-    const dir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-    if (!fs.existsSync(DATA_PATH)) {
-        const initialData = {
-            usuarios: [{ id: 1, nome: "Admin", email: "admin@teste.com", password: "123" }],
-            ordens: []
-        };
-        fs.writeFileSync(DATA_PATH, JSON.stringify(initialData, null, 2));
+    // Criar tabelas iniciais
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT,
+            email TEXT UNIQUE,
+            password TEXT
+        );
+        CREATE TABLE IF NOT EXISTS ordens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente TEXT,
+            equipamento TEXT,
+            status TEXT,
+            data TEXT
+        );
+    `);
+
+    // Criar admin padrão se não existir
+    const admin = await db.get('SELECT * FROM usuarios WHERE email = ?', ['admin@teste.com']);
+    if (!admin) {
+        await db.run('INSERT INTO usuarios (nome, email, password) VALUES (?, ?, ?)', 
+        ['Admin Master', 'admin@teste.com', '123']);
     }
-}
 
-function readDB() {
-    const data = fs.readFileSync(DATA_PATH, 'utf-8');
-    return JSON.parse(data);
-}
+    console.log("✅ Banco de Dados SQLite (dados.db) pronto!");
+})();
 
-function writeDB(data) {
-    fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
-}
-
-// --- ROTAS DE AUTENTICAÇÃO ---
-
-app.post('/api/login', (req, res) => {
+// Rota de Login
+app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
-    const db = readDB();
-    const user = db.usuarios.find(u => u.email === email && u.password === password);
+    const user = await db.get('SELECT * FROM usuarios WHERE email = ? AND password = ?', [email, password]);
 
     if (user) {
         res.json({ success: true, user: { nome: user.nome, email: user.email } });
     } else {
-        res.status(401).json({ success: false, message: "E-mail ou senha inválidos!" });
+        res.status(401).json({ success: false, message: "E-mail ou senha incorretos!" });
     }
 });
 
-// --- ROTAS DE ORDENS DE SERVIÇO (OS) ---
-
-// Listar todas as OS
-app.get('/api/os', (req, res) => {
-    const db = readDB();
-    res.json(db.ordens);
+// Listar Ordens
+app.get('/api/os', async (req, res) => {
+    const rows = await db.all('SELECT * FROM ordens ORDER BY id DESC');
+    res.json(rows);
 });
 
-// Criar nova OS
-app.post('/api/os', (req, res) => {
-    const db = readDB();
-    const novaOS = {
-        id: Date.now(),
-        ...req.body
-    };
-    db.ordens.push(novaOS);
-    writeDB(db);
-    res.status(201).json(novaOS);
+// Criar Ordem
+app.post('/api/os', async (req, res) => {
+    const { cliente, equipamento, status } = req.body;
+    const data = new Date().toLocaleString();
+    await db.run('INSERT INTO ordens (cliente, equipamento, status, data) VALUES (?, ?, ?, ?)',
+    [cliente, equipamento, status || 'Aberto', data]);
+    res.status(201).json({ success: true });
 });
 
-// ATUALIZAR STATUS (O botão "OK" do histórico usa esta rota)
-app.put('/api/os/:id', (req, res) => {
-    const db = readDB();
-    const id = parseInt(req.params.id);
-    const { status } = req.body;
-
-    const index = db.ordens.findIndex(o => o.id === id);
-    if (index !== -1) {
-        db.ordens[index].status = status;
-        writeDB(db);
-        res.json({ success: true });
-    } else {
-        res.status(404).json({ message: "OS não encontrada" });
-    }
-});
-
-// Excluir OS
-app.delete('/api/os/:id', (req, res) => {
-    const db = readDB();
-    const id = parseInt(req.params.id);
-    db.ordens = db.ordens.filter(o => o.id !== id);
-    writeDB(db);
-    res.json({ success: true });
-});
-
-// --- ROTAS DE ESTATÍSTICAS (DASHBOARD) ---
-
-app.get('/api/stats', (req, res) => {
-    const db = readDB();
-    const total = db.ordens.length;
-    const abertas = db.ordens.filter(o => o.status !== 'Concluído').length;
-    res.json({ total, abertas });
-});
-
-// --- ROTAS DE USUÁRIOS (ADMIN) ---
-
-app.get('/api/usuarios', (req, res) => {
-    const db = readDB();
-    // Retorna usuários sem a senha por segurança
-    const lista = db.usuarios.map(({ password, ...u }) => u);
-    res.json(lista);
-});
-
-app.post('/api/usuarios', (req, res) => {
-    const db = readDB();
-    const novoUser = { id: Date.now(), ...req.body };
-    db.usuarios.push(novoUser);
-    writeDB(db);
-    res.status(201).json(novoUser);
-});
-
-app.delete('/api/usuarios/:id', (req, res) => {
-    const db = readDB();
-    const id = parseInt(req.params.id);
-    if (id === 1) return res.status(403).json({ message: "Não é possível excluir o Admin Master" });
-    db.usuarios = db.usuarios.filter(u => u.id !== id);
-    writeDB(db);
-    res.json({ success: true });
-});
-
-// --- INICIALIZAÇÃO ---
-
-initDB();
-
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
-});
+app.listen(3000, () => console.log("🚀 Servidor em http://localhost:3000"));
